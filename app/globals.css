@@ -10,6 +10,9 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --font-caveat: var(--font-caveat);
+
+  --font-family-heading: var(--font-caveat), cursive;
 }
 
 @media (prefers-color-scheme: dark) {

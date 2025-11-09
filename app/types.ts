@@ -16,6 +16,7 @@ export interface BrandVoiceAnalysis {
   terminology: string[];
   structure: string;
   consistencyScore?: number;
+  visualStyle?: string; // Description of visual style from brand voice images
 }
 
 export interface GeneratedContent {
@@ -23,6 +24,8 @@ export interface GeneratedContent {
   content: string;
   title?: string;
   consistencyScore?: number;
+  imageUrl?: string; // URL of generated image (if requested)
+  imagePrompt?: string; // The prompt used to generate the image
 }
 
 export interface BrandVoiceExample {

@@ -6,10 +6,23 @@ import { BrandVoiceAnalysis, BrandVoiceExample } from "@/app/types";
 interface BrandVoiceUploadProps {
   onBack: () => void;
   onComplete: (examples: BrandVoiceExample[], analysis: BrandVoiceAnalysis) => void;
+  initialExamples?: BrandVoiceExample[];
 }
 
-export default function BrandVoiceUpload({ onBack, onComplete }: BrandVoiceUploadProps) {
-  const [examples, setExamples] = useState<(BrandVoiceExample | null)[]>([null, null, null]);
+export default function BrandVoiceUpload({ onBack, onComplete, initialExamples }: BrandVoiceUploadProps) {
+  // Initialize with saved examples if they exist, otherwise use empty array
+  const initializeExamples = () => {
+    if (initialExamples && initialExamples.length > 0) {
+      const initialized = [...initialExamples];
+      while (initialized.length < 3) {
+        initialized.push(null as any);
+      }
+      return initialized.slice(0, 3);
+    }
+    return [null, null, null];
+  };
+
+  const [examples, setExamples] = useState<(BrandVoiceExample | null)[]>(initializeExamples());
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const fileInputRefs = useRef<(HTMLInputElement | null)[]>([null, null, null]);
 
@@ -72,8 +85,8 @@ export default function BrandVoiceUpload({ onBack, onComplete }: BrandVoiceUploa
 
   const handleAnalyze = async () => {
     const validExamples = examples.filter(ex => ex && ((ex.content && ex.content.trim().length > 0) || (ex.textContent && ex.textContent.trim().length > 0))) as BrandVoiceExample[];
-    if (validExamples.length < 2) {
-      alert("Please provide at least 2 examples of your brand voice.");
+    if (validExamples.length < 1) {
+      alert("Please provide at least 1 example of your brand voice.");
       return;
     }
 
@@ -141,7 +154,7 @@ export default function BrandVoiceUpload({ onBack, onComplete }: BrandVoiceUploa
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-indigo-50 to-purple-100 py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-amber-100 py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
       {/* Floating Claude Logo Background */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-5">
         {[...Array(12)].map((_, i) => (
@@ -155,7 +168,7 @@ export default function BrandVoiceUpload({ onBack, onComplete }: BrandVoiceUploa
               animationDuration: `${15 + (i % 5)}s`
             }}
           >
-            <svg width="80" height="80" viewBox="0 0 24 24" fill="currentColor" className="text-purple-600">
+            <svg width="80" height="80" viewBox="0 0 24 24" fill="currentColor" className="text-amber-700">
               <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
             </svg>
           </div>
@@ -163,22 +176,22 @@ export default function BrandVoiceUpload({ onBack, onComplete }: BrandVoiceUploa
       </div>
 
       <div className="max-w-3xl mx-auto relative z-10">
-        <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-2xl p-8 border border-purple-100">
+        <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-2xl p-8 border border-amber-200">
           <div className="mb-6">
             <button
               onClick={handleBack}
-              className="text-purple-600 hover:text-purple-700 font-medium mb-4 transition-colors flex items-center gap-2"
+              className="text-amber-700 hover:text-amber-800 font-medium mb-4 transition-colors flex items-center gap-2"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
               Back
             </button>
-            <h2 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent mb-2">
+            <h2 className="text-4xl font-bold bg-gradient-to-r from-amber-700 to-amber-600 bg-clip-text text-transparent mb-2" style={{ fontFamily: 'var(--font-caveat)' }}>
               Brand Voice Calibration
             </h2>
             <p className="text-gray-600">
-              Upload images and/or paste text for each example. You can combine both - upload an image and add text to explain it. Claude will analyze everything to understand your brand voice.
+              Upload images and/or paste text for each example. You can provide 1-3 examples (more examples = better analysis). You can combine both - upload an image and add text to explain it. Claude will analyze everything to understand your brand voice.
             </p>
           </div>
 
@@ -186,7 +199,7 @@ export default function BrandVoiceUpload({ onBack, onComplete }: BrandVoiceUploa
             {examples.map((example, index) => (
               <div key={index}>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Example {index + 1} {index < 2 && <span className="text-gray-400">(Required)</span>}
+                  Example {index + 1} <span className="text-gray-400">(Optional)</span>
                 </label>
                 
                 {/* File Upload Button */}
@@ -206,7 +219,7 @@ export default function BrandVoiceUpload({ onBack, onComplete }: BrandVoiceUploa
                   />
                   <label
                     htmlFor={`file-input-${index}`}
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-purple-50 hover:bg-purple-100 text-purple-700 rounded-lg cursor-pointer transition-colors text-sm font-medium border border-purple-200"
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-amber-50 hover:bg-amber-100 text-amber-800 rounded-lg cursor-pointer transition-colors text-sm font-medium border border-amber-300"
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
@@ -263,10 +276,10 @@ export default function BrandVoiceUpload({ onBack, onComplete }: BrandVoiceUploa
                   placeholder={example && (example.type === 'image' || example.type === 'mixed') 
                     ? "Add text to describe or explain this image..." 
                     : "Paste text content here (blog post, article, social media post, etc.) or upload an image above"}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent h-32 resize-none"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-600 focus:border-transparent h-32 resize-none"
                 />
                 {example && example.type === 'mixed' && (
-                  <p className="mt-1 text-xs text-purple-600">
+                  <p className="mt-1 text-xs text-amber-700">
                     ✓ Both image and text will be analyzed together
                   </p>
                 )}
@@ -283,8 +296,8 @@ export default function BrandVoiceUpload({ onBack, onComplete }: BrandVoiceUploa
             </button>
             <button
               onClick={handleAnalyze}
-              disabled={isAnalyzing || examples.filter(ex => ex && ((ex.content && ex.content.trim().length > 0) || (ex.textContent && ex.textContent.trim().length > 0))).length < 2}
-              className="flex-1 py-3 px-6 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 disabled:from-gray-400 disabled:to-gray-400 disabled:cursor-not-allowed text-white font-semibold rounded-lg transition-all flex items-center justify-center shadow-lg"
+              disabled={isAnalyzing || examples.filter(ex => ex && ((ex.content && ex.content.trim().length > 0) || (ex.textContent && ex.textContent.trim().length > 0))).length < 1}
+              className="flex-1 py-3 px-6 bg-gradient-to-r from-amber-700 to-amber-600 hover:from-amber-800 hover:to-amber-700 disabled:from-gray-400 disabled:to-gray-400 disabled:cursor-not-allowed text-white font-semibold rounded-lg transition-all flex items-center justify-center shadow-lg"
             >
               {isAnalyzing ? (
                 <>
@@ -300,9 +313,9 @@ export default function BrandVoiceUpload({ onBack, onComplete }: BrandVoiceUploa
             </button>
           </div>
 
-          <div className="mt-6 p-4 bg-purple-50 border border-purple-200 rounded-lg">
-            <p className="text-sm text-purple-800">
-              <strong>Tip:</strong> You can upload an image AND add text in the same box. This helps Claude understand both your visual style and writing style. The more examples you provide, the better Claude can understand your brand voice.
+          <div className="mt-6 p-4 bg-amber-50 border border-amber-300 rounded-lg">
+            <p className="text-sm text-amber-900">
+              <strong>Tip:</strong> You can upload an image AND add text in the same box. This helps Claude understand both your visual style and writing style. While you only need 1 example to get started, providing 2-3 examples helps Claude better understand your brand voice and produce more accurate results.
             </p>
           </div>
         </div>

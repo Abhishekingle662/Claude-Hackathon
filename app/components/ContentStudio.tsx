@@ -122,6 +122,22 @@ export default function ContentStudio() {
     setStep("input");
   };
 
+  const handleBackToInput = () => {
+    // Keep all data intact, just go back to input screen
+    setStep("input");
+  };
+
+  const handleNewContent = () => {
+    // Clear everything for a fresh start
+    setStep("input");
+    setGeneratedContent([]);
+    setTopic("");
+    setIndustry("");
+    setSelectedFormats(["blog"]);
+    setBrandVoiceExamples([]);
+    setBrandVoice(null);
+  };
+
   if (step === "brand-voice") {
     return (
       <BrandVoiceUpload
@@ -131,6 +147,7 @@ export default function ContentStudio() {
           setBrandVoice(analysis);
           setStep("input");
         }}
+        initialExamples={brandVoiceExamples}
       />
     );
   }
@@ -143,31 +160,28 @@ export default function ContentStudio() {
         contents={generatedContent}
         brandVoice={brandVoice}
         onRegenerate={handleGenerate}
-        onNewContent={() => {
-          setStep("input");
-          setGeneratedContent([]);
-          setTopic("");
-        }}
+        onBackToInput={handleBackToInput}
+        onNewContent={handleNewContent}
       />
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-indigo-50 to-purple-100 py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-amber-100 py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
       {/* Floating Claude Logo Background */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-5">
-        {[...Array(15)].map((_, i) => (
+        {[...Array(12)].map((_, i) => (
           <div
             key={i}
             className="absolute animate-float"
             style={{
-              left: `${(i * 6.67) % 100}%`,
-              top: `${(i * 6.67) % 100}%`,
-              animationDelay: `${i * 0.4}s`,
-              animationDuration: `${18 + (i % 7)}s`
+              left: `${(i * 8.33) % 100}%`,
+              top: `${(i * 7) % 100}%`,
+              animationDelay: `${i * 0.5}s`,
+              animationDuration: `${15 + (i % 5)}s`
             }}
           >
-            <svg width="100" height="100" viewBox="0 0 24 24" fill="currentColor" className="text-purple-600">
+            <svg width="80" height="80" viewBox="0 0 24 24" fill="currentColor" className="text-amber-700">
               <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
             </svg>
           </div>
@@ -177,7 +191,7 @@ export default function ContentStudio() {
       <div className="max-w-4xl mx-auto relative z-10">
         {/* Header */}
         <div className="text-center mb-12">
-          <h1 className="text-5xl font-bold bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent mb-4 animate-gradient">
+          <h1 className="text-6xl font-bold bg-gradient-to-r from-amber-700 via-amber-600 to-amber-700 bg-clip-text text-transparent mb-4 animate-gradient" style={{ fontFamily: 'var(--font-caveat)' }}>
             AI Content Studio
           </h1>
           <p className="text-xl text-gray-700 font-medium">
@@ -186,7 +200,7 @@ export default function ContentStudio() {
         </div>
 
         {/* Main Form */}
-        <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-2xl p-8 mb-6 border border-purple-100">
+        <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-2xl p-8 mb-6 border border-amber-200">
           {/* Topic Input */}
           <div className="mb-8">
             <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -197,7 +211,7 @@ export default function ContentStudio() {
               value={topic}
               onChange={(e) => setTopic(e.target.value)}
               placeholder="e.g., How AI is transforming fraud detection in banking"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-lg transition-all"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-600 focus:border-transparent text-lg transition-all"
             />
           </div>
 
@@ -218,7 +232,7 @@ export default function ContentStudio() {
                 }}
                 onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
                 placeholder="Enter any industry (e.g., FinTech, Software Engineering, Healthcare)"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-lg transition-all"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-600 focus:border-transparent text-lg transition-all"
                 list="industry-suggestions"
               />
               {showSuggestions && industrySuggestions.length > 0 && (
@@ -228,7 +242,7 @@ export default function ContentStudio() {
                       key={idx}
                       type="button"
                       onClick={() => selectIndustry(suggestion)}
-                      className="w-full text-left px-4 py-2 hover:bg-purple-50 transition-colors"
+                      className="w-full text-left px-4 py-2 hover:bg-amber-50 transition-colors"
                     >
                       {suggestion}
                     </button>
@@ -253,8 +267,8 @@ export default function ContentStudio() {
                   onClick={() => toggleFormat(format.value)}
                   className={`p-4 rounded-lg border-2 text-left transition-all ${
                     selectedFormats.includes(format.value)
-                      ? "border-purple-500 bg-purple-50 shadow-md"
-                      : "border-gray-200 hover:border-purple-300 hover:bg-purple-50/50"
+                      ? "border-purple-500 bg-amber-50 shadow-md"
+                      : "border-gray-200 hover:border-purple-300 hover:bg-amber-50/50"
                   }`}
                 >
                   <div className="flex items-center mb-2">
@@ -262,7 +276,7 @@ export default function ContentStudio() {
                       type="checkbox"
                       checked={selectedFormats.includes(format.value)}
                       onChange={() => {}}
-                      className="mr-3 w-5 h-5 text-purple-600 focus:ring-purple-500"
+                      className="mr-3 w-5 h-5 text-amber-700 focus:ring-amber-600"
                     />
                     <span className="font-semibold text-gray-900">
                       {format.label}
@@ -277,7 +291,7 @@ export default function ContentStudio() {
           </div>
 
           {/* Brand Voice Section */}
-          <div className="mb-8 p-4 bg-gradient-to-r from-purple-50 to-indigo-50 rounded-lg border border-purple-200">
+          <div className="mb-8 p-4 bg-gradient-to-r from-amber-50 to-orange-50 rounded-lg border border-amber-300">
             <div className="flex items-center justify-between mb-2">
               <label className="block text-sm font-semibold text-gray-700">
                 Brand Voice Calibration
@@ -300,7 +314,7 @@ export default function ContentStudio() {
             </p>
             <button
               onClick={() => setStep("brand-voice")}
-              className="px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-lg text-sm font-medium transition-all shadow-md"
+              className="px-4 py-2 bg-gradient-to-r from-amber-700 to-amber-600 hover:from-amber-800 hover:to-amber-700 text-white rounded-lg text-sm font-medium transition-all shadow-md"
             >
               {brandVoice ? "Update Brand Voice" : "Calibrate Brand Voice"}
             </button>
@@ -313,54 +327,64 @@ export default function ContentStudio() {
           </div>
 
           {/* Generate Button */}
-          <button
-            onClick={handleGenerate}
-            disabled={isGenerating || !topic.trim() || selectedFormats.length === 0}
-            className="w-full py-4 bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-600 hover:from-purple-700 hover:via-indigo-700 hover:to-purple-700 disabled:from-gray-400 disabled:via-gray-400 disabled:to-gray-400 disabled:cursor-not-allowed text-white font-semibold rounded-lg text-lg transition-all flex items-center justify-center shadow-lg hover:shadow-xl transform hover:scale-[1.02] disabled:transform-none"
-          >
-            {isGenerating ? (
-              <>
-                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                Generating Content...
-              </>
-            ) : (
-              "Generate Content"
+          <div className="flex gap-4">
+            {generatedContent.length > 0 && (
+              <button
+                onClick={() => setStep("results")}
+                className="flex-1 py-4 px-6 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-lg transition-all flex items-center justify-center text-lg shadow-lg border-2 border-gray-300"
+              >
+                ← Back to Generated Content
+              </button>
             )}
-          </button>
+            <button
+              onClick={handleGenerate}
+              disabled={isGenerating || !topic.trim() || selectedFormats.length === 0}
+              className={`${generatedContent.length > 0 ? 'flex-1' : 'w-full'} py-4 bg-gradient-to-r from-amber-700 via-amber-600 to-amber-700 hover:from-amber-800 hover:via-amber-700 hover:to-amber-800 disabled:from-gray-400 disabled:via-gray-400 disabled:to-gray-400 disabled:cursor-not-allowed text-white font-semibold rounded-lg text-lg transition-all flex items-center justify-center shadow-lg hover:shadow-xl transform hover:scale-[1.02] disabled:transform-none`}
+            >
+              {isGenerating ? (
+                <>
+                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Generating Content...
+                </>
+              ) : (
+                generatedContent.length > 0 ? "Regenerate Content" : "Generate Content"
+              )}
+            </button>
+          </div>
         </div>
 
         {/* Info Box */}
-        <div className="bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200 rounded-lg p-6 shadow-lg">
-          <h3 className="font-semibold text-purple-900 mb-2 flex items-center gap-2">
-            <svg className="w-5 h-5 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
+        <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-300 rounded-lg p-6 shadow-lg">
+          <h3 className="font-semibold text-amber-950 mb-2 flex items-center gap-2">
+            <svg className="w-5 h-5 text-amber-700" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
             </svg>
             How it works
           </h3>
-          <ul className="text-sm text-purple-800 space-y-1">
+          <ul className="text-sm text-amber-900 space-y-1">
             <li className="flex items-center gap-2">
-              <svg className="w-4 h-4 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
+              <svg className="w-4 h-4 text-amber-700" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
               </svg>
               Enter your topic and select content formats
             </li>
             <li className="flex items-center gap-2">
-              <svg className="w-4 h-4 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
+              <svg className="w-4 h-4 text-amber-700" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
               </svg>
               Optionally calibrate brand voice with examples
             </li>
             <li className="flex items-center gap-2">
-              <svg className="w-4 h-4 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
+              <svg className="w-4 h-4 text-amber-700" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
               </svg>
               Generate complete content suite in 30-60 seconds
             </li>
             <li className="flex items-center gap-2">
-              <svg className="w-4 h-4 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
+              <svg className="w-4 h-4 text-amber-700" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
               </svg>
               Review, refine, and export your content
