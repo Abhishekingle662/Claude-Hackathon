@@ -40,3 +40,71 @@ body {
 .animate-float {
   animation: float 20s ease-in-out infinite;
 }
+
+/* Content formatting styles */
+.formatted-content h1, .formatted-content h2, .formatted-content h3, .formatted-content h4 {
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+  font-weight: bold;
+}
+
+.formatted-content h1 {
+  font-size: 1.875rem;
+  color: #1f2937;
+}
+
+.formatted-content h2 {
+  font-size: 1.5rem;
+  color: #374151;
+}
+
+.formatted-content h3 {
+  font-size: 1.25rem;
+  color: #d97706;
+}
+
+.formatted-content h4 {
+  font-size: 1.125rem;
+  color: #374151;
+}
+
+.formatted-content p {
+  margin-bottom: 0.75rem;
+  line-height: 1.6;
+  color: #4b5563;
+}
+
+.formatted-content ul, .formatted-content ol {
+  margin-bottom: 1rem;
+  padding-left: 1.5rem;
+}
+
+.formatted-content li {
+  margin-bottom: 0.25rem;
+  color: #4b5563;
+}
+
+.formatted-content pre {
+  background-color: #1f2937;
+  color: #f9fafb;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  overflow-x: auto;
+  margin: 1rem 0;
+}
+
+.formatted-content .font-bold {
+  font-weight: 700;
+}
+
+.formatted-content .text-blue-600 {
+  color: #2563eb;
+}
+
+.formatted-content .text-amber-700 {
+  color: #d97706;
+}
+
+.formatted-content .border-b {
+  border-bottom-width: 1px;
+}

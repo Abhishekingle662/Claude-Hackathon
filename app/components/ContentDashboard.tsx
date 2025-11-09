@@ -48,6 +48,157 @@ export default function ContentDashboard({
     URL.revokeObjectURL(url);
   };
 
+  const formatContentForDisplay = (content: GeneratedContent) => {
+    const lines = content.content.split('\n');
+    
+    if (content.format === 'email' || content.format === 'newsletter') {
+      // Enhanced formatting for email content
+      const formatted = lines.map(line => {
+        const trimmed = line.trim();
+        
+        // Empty lines
+        if (trimmed === '') {
+          return '<div class="h-3"></div>';
+        }
+        
+        // Main section headers (bold with colon)
+        if (trimmed.startsWith('**') && trimmed.endsWith('**') && trimmed.includes(':')) {
+          const headerText = trimmed.replace(/\*\*/g, '');
+          return `<div class="mt-6 mb-3 pb-2 border-b border-gray-200">
+            <h3 class="font-bold text-lg text-amber-700">${headerText}</h3>
+          </div>`;
+        }
+        
+        // Bold headers without colons
+        if (trimmed.startsWith('**') && trimmed.endsWith('**')) {
+          return `<h4 class="font-bold text-base mt-4 mb-2 text-gray-800">${trimmed.replace(/\*\*/g, '')}</h4>`;
+        }
+        
+        // Bullet points
+        if (trimmed.startsWith('•') || trimmed.startsWith('✅')) {
+          return `<div class="ml-4 mb-2 flex items-start gap-2">
+            <span class="text-amber-600 font-bold mt-1">${trimmed.charAt(0)}</span>
+            <span class="text-gray-800">${trimmed.substring(1).trim()}</span>
+          </div>`;
+        }
+        
+        // Italic text (quotes or emphasis)
+        if (trimmed.startsWith('*') && trimmed.endsWith('*') && !trimmed.startsWith('**')) {
+          return `<p class="italic text-gray-600 my-3 pl-4 border-l-2 border-amber-300">${trimmed.replace(/^\*|\*$/g, '')}</p>`;
+        }
+        
+        // Call-to-action links or buttons
+        if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+          return `<div class="my-4">
+            <span class="inline-block px-4 py-2 bg-amber-100 text-amber-800 rounded-lg font-medium border border-amber-300">${trimmed}</span>
+          </div>`;
+        }
+        
+        // Footer/disclaimer text
+        if (trimmed.startsWith('---') || trimmed.includes('Unsubscribe') || trimmed.includes('Update Preferences')) {
+          return `<div class="mt-6 pt-4 border-t border-gray-200 text-xs text-gray-500">${trimmed}</div>`;
+        }
+        
+        // Signature or closing
+        if (trimmed.includes('P.S.') || trimmed.includes('Keep ') || trimmed.includes('Best,') || trimmed.includes('[Your Name]')) {
+          return `<p class="mt-4 text-gray-700 font-medium">${trimmed}</p>`;
+        }
+        
+        // Regular paragraphs
+        return `<p class="mb-3 text-gray-800 leading-relaxed">${trimmed}</p>`;
+      }).join('');
+      
+      return formatted;
+    }
+    
+    if (content.format === 'blog') {
+      // Blog post formatting
+      const formatted = lines.map(line => {
+        const trimmed = line.trim();
+        
+        if (trimmed === '') {
+          return '<div class="h-4"></div>';
+        }
+        
+        // Headers
+        if (trimmed.startsWith('# ')) {
+          return `<h1 class="text-2xl font-bold mt-6 mb-4 text-gray-900">${trimmed.substring(2)}</h1>`;
+        }
+        if (trimmed.startsWith('## ')) {
+          return `<h2 class="text-xl font-bold mt-5 mb-3 text-gray-800">${trimmed.substring(3)}</h2>`;
+        }
+        if (trimmed.startsWith('### ')) {
+          return `<h3 class="text-lg font-semibold mt-4 mb-2 text-gray-800">${trimmed.substring(4)}</h3>`;
+        }
+        
+        // Bold text
+        if (trimmed.startsWith('**') && trimmed.endsWith('**')) {
+          return `<p class="font-bold mb-3 text-gray-800">${trimmed.replace(/\*\*/g, '')}</p>`;
+        }
+        
+        // Bullet points
+        if (trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
+          return `<li class="mb-1 ml-4 text-gray-800">${trimmed.substring(2)}</li>`;
+        }
+        
+        return `<p class="mb-3 text-gray-800 leading-relaxed">${trimmed}</p>`;
+      }).join('');
+      
+      return formatted;
+    }
+    
+    // Social media posts (Twitter, LinkedIn, Instagram, Facebook)
+    if (['twitter', 'linkedin', 'instagram', 'facebook'].includes(content.format)) {
+      const formatted = lines.map(line => {
+        const trimmed = line.trim();
+        
+        if (trimmed === '') return '<div class="h-3"></div>';
+        
+        // Section headers (numbered like "1. TEXT-ONLY POST")
+        if (/^\d+\./.test(trimmed) && trimmed.length > 5) {
+          return `<div class="mt-6 mb-4 pb-3 border-b-2 border-amber-300"><p class="font-bold text-amber-700 text-lg">${trimmed}</p></div>`;
+        }
+        
+        // Bold text sections
+        if (trimmed.startsWith('**') && trimmed.endsWith('**')) {
+          return `<p class="font-bold text-gray-900 my-2">${trimmed.replace(/\*\*/g, '')}</p>`;
+        }
+        
+        // Separators
+        if (trimmed === '---') {
+          return '<div class="my-6 border-t-2 border-gray-300"></div>';
+        }
+        
+        // Hashtags
+        if (trimmed.startsWith('#')) {
+          return `<p class="text-blue-600 font-medium mb-2">${trimmed}</p>`;
+        }
+        
+        // Emoji lines
+        if (trimmed.match(/^[🚀🛰️🌌📱💻👇👨👩🎯✅📊🔹→🤔]+/)) {
+          return `<p class="my-3 text-gray-800">${trimmed}</p>`;
+        }
+        
+        // Bullet points
+        if (trimmed.startsWith('•') || trimmed.startsWith('✅') || trimmed.startsWith('→')) {
+          return `<p class="ml-4 mb-2 text-gray-800">${trimmed}</p>`;
+        }
+        
+        // Mentions
+        if (trimmed.includes('@')) {
+          return `<p class="mb-2 text-gray-800">${trimmed.replace(/@(\w+)/g, '<span class="text-blue-600 font-medium">@$1</span>')}</p>`;
+        }
+        
+        return `<p class="mb-2 text-gray-800 leading-relaxed">${trimmed}</p>`;
+      }).join('');
+      
+      return formatted;
+    }
+    
+    // Default formatting for other content types
+    return content.content.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+  };
+
   const handleExportImage = (imageUrl: string) => {
     // Decode the SVG from the data URI
     let svgContent = imageUrl;
@@ -101,7 +252,7 @@ export default function ContentDashboard({
         <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-2xl p-8 mb-6 border border-amber-200">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h1 className="text-4xl font-bold bg-gradient-to-r from-amber-700 to-amber-600 bg-clip-text text-transparent mb-2" style={{ fontFamily: 'var(--font-caveat)' }}>
+              <h1 className="text-4xl font-bold bg-gradient-to-r from-amber-700 to-amber-600 bg-clip-text text-transparent mb-2" style={{ fontFamily: 'var(--font-caveat)', color: 'black' }}>
                 Generated Content
               </h1>
               <p className="text-gray-600">
@@ -163,7 +314,7 @@ export default function ContentDashboard({
             <div key={index} className="bg-white/90 backdrop-blur-sm rounded-xl shadow-lg p-6 border border-amber-200">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-3">
-                  <h2 className="text-xl font-bold text-gray-900">
+                  <h2 className="text-xl font-bold text-black">
                     {formatLabels[content.format] || content.format}
                   </h2>
                   {content.consistencyScore !== undefined && (
@@ -242,9 +393,51 @@ export default function ContentDashboard({
               )}
 
               <div className="prose max-w-none">
-                <div className="whitespace-pre-wrap text-gray-700 leading-relaxed">
-                  {content.content}
-                </div>
+                {content.format === "google-ads" ? (
+                  <div className="space-y-8">
+                    {content.content.split(/---+/).map((adBlock, idx) => {
+                      const lines = adBlock.trim().split(/\r?\n/).filter(Boolean);
+                      const title = lines[0]?.replace(/\*\*(.*?)\*\*/, '$1');
+                      const headlines = lines.filter(l => l.startsWith('**Headline')).map(l => l.replace(/\*\*Headline \d:\*\* /, ''));
+                      const descriptions = lines.filter(l => l.startsWith('**Description')).map(l => l.replace(/\*\*Description \d:\*\* /, ''));
+                      return (
+                        <div key={idx} className="border border-amber-200 rounded-lg p-4 bg-amber-50">
+                          {title && <h3 className="font-bold text-lg mb-2 text-amber-800">{title}</h3>}
+                          <div className="mb-2">
+                            <span className="font-semibold text-gray-700">Headlines:</span>
+                            <ul className="list-disc ml-6 text-black">
+                              {headlines.map((h, i) => <li key={i}>{h}</li>)}
+                            </ul>
+                          </div>
+                          <div>
+                            <span className="font-semibold text-gray-700">Descriptions:</span>
+                            <ul className="list-disc ml-6 text-black">
+                              {descriptions.map((d, i) => <li key={i}>{d}</li>)}
+                            </ul>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : content.format === "email" || content.format === "newsletter" ? (
+                  <div 
+                    className="formatted-content"
+                    dangerouslySetInnerHTML={{ 
+                      __html: formatContentForDisplay(content) 
+                    }}
+                  />
+                ) : content.format === "blog" || content.format === "linkedin" || content.format === "facebook" || content.format === "instagram" || content.format === "twitter" ? (
+                  <div 
+                    className="formatted-content prose prose-sm max-w-none"
+                    dangerouslySetInnerHTML={{ 
+                      __html: formatContentForDisplay(content) 
+                    }}
+                  />
+                ) : (
+                  <div className="whitespace-pre-wrap text-black leading-relaxed">
+                    {content.content}
+                  </div>
+                )}
               </div>
             </div>
           ))}
@@ -330,15 +523,37 @@ export default function ContentDashboard({
         </div>
       )}
 
-      <style jsx>{`
-        @keyframes float {
-          0%, 100% { transform: translateY(0px) rotate(0deg); }
-          50% { transform: translateY(-20px) rotate(180deg); }
-        }
-        .animate-float {
-          animation: float 20s ease-in-out infinite;
-        }
-      `}</style>
+      <style dangerouslySetInnerHTML={{
+        __html: `
+          @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(180deg); }
+          }
+          .animate-float {
+            animation: float 20s ease-in-out infinite;
+          }
+          .formatted-content h1, .formatted-content h2, .formatted-content h3, .formatted-content h4 {
+            line-height: 1.3;
+          }
+          .formatted-content p {
+            line-height: 1.6;
+          }
+          .formatted-content ul, .formatted-content ol {
+            padding-left: 1rem;
+          }
+          .formatted-content li {
+            margin-bottom: 0.25rem;
+          }
+          .formatted-content strong {
+            font-weight: 600;
+            color: #374151;
+          }
+          .formatted-content em {
+            font-style: italic;
+            color: #6B7280;
+          }
+        `
+      }} />
     </div>
   );
 }

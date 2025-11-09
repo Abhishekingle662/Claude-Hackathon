@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Industry, ContentFormat, GeneratedContent, BrandVoiceAnalysis, BrandVoiceExample } from "@/app/types";
 import BrandVoiceUpload from "./BrandVoiceUpload";
 import ContentDashboard from "./ContentDashboard";
+import ContentHistory from "./ContentHistory";
 
 export default function ContentStudio() {
   const [topic, setTopic] = useState("");
@@ -16,6 +17,8 @@ export default function ContentStudio() {
   const [generatedContent, setGeneratedContent] = useState<GeneratedContent[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [step, setStep] = useState<"input" | "brand-voice" | "results">("input");
+  const [currentView, setCurrentView] = useState<"studio" | "history">("studio");
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const industryOptions = [
     "FinTech",
@@ -104,6 +107,25 @@ export default function ContentStudio() {
       if (data.brandVoiceAnalysis) {
         setBrandVoice(data.brandVoiceAnalysis);
       }
+      
+      // Save to history
+      try {
+        const historyItem = {
+          id: Date.now().toString(),
+          topic: topic,
+          industry: industry.trim(),
+          formats: selectedFormats,
+          timestamp: Date.now(),
+          content: data.contents
+        };
+        
+        const existingHistory = JSON.parse(localStorage.getItem('contentHistory') || '[]');
+        const updatedHistory = [historyItem, ...existingHistory].slice(0, 50); // Keep last 50 items
+        localStorage.setItem('contentHistory', JSON.stringify(updatedHistory));
+      } catch (error) {
+        console.error('Error saving to history:', error);
+      }
+      
       setStep("results");
     } catch (error) {
       console.error("Error generating content:", error);
@@ -138,36 +160,179 @@ export default function ContentStudio() {
     setBrandVoice(null);
   };
 
+  // Sidebar Component
+  const Sidebar = () => (
+    <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-xl transform transition-transform duration-300 ease-in-out ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+      <div className="flex items-center justify-between p-4 border-b border-gray-200">
+        <h2 className="text-lg font-semibold text-gray-800">Menu</h2>
+        <button
+          onClick={() => setSidebarOpen(false)}
+          className="p-1 rounded-md hover:bg-gray-100 transition-colors"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+      <nav className="p-4">
+        <ul className="space-y-2">
+          <li>
+            <button
+              onClick={() => {
+                setCurrentView("studio");
+                setSidebarOpen(false);
+              }}
+              className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${
+                currentView === "studio" 
+                  ? "bg-amber-100 text-amber-800 font-medium" 
+                  : "text-gray-700 hover:bg-gray-100"
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 4a2 2 0 114 0v1a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a2 2 0 100 4h1a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-1a2 2 0 10-4 0v1a1 1 0 01-1 1H7a1 1 0 01-1-1v-3a1 1 0 00-1-1H4a1 1 0 01-1-1V9a1 1 0 011-1h1a2 2 0 100-4H4a1 1 0 01-1-1V4a1 1 0 011-1h3a1 1 0 001-1z" />
+                </svg>
+                Content Studio
+              </div>
+            </button>
+          </li>
+          <li>
+            <button
+              onClick={() => {
+                setCurrentView("history");
+                setSidebarOpen(false);
+              }}
+              className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${
+                currentView === "history" 
+                  ? "bg-amber-100 text-amber-800 font-medium" 
+                  : "text-gray-700 hover:bg-gray-100"
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Content History
+              </div>
+            </button>
+          </li>
+        </ul>
+      </nav>
+    </div>
+  );
+
+  // Show history view
+  if (currentView === "history") {
+    return (
+      <>
+        <Sidebar />
+        {/* Overlay */}
+        {sidebarOpen && (
+          <div 
+            className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+            onClick={() => setSidebarOpen(false)}
+          />
+        )}
+        {/* Hamburger button */}
+        <button
+          onClick={() => setSidebarOpen(true)}
+          className="fixed top-4 left-4 z-30 p-2 bg-white rounded-lg shadow-lg hover:shadow-xl transition-all"
+        >
+          <svg className="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
+        <ContentHistory />
+      </>
+    );
+  }
+
   if (step === "brand-voice") {
     return (
-      <BrandVoiceUpload
-        onBack={handleBackFromBrandVoice}
-        onComplete={(examples, analysis) => {
-          setBrandVoiceExamples(examples);
-          setBrandVoice(analysis);
-          setStep("input");
-        }}
-        initialExamples={brandVoiceExamples}
-      />
+      <>
+        <Sidebar />
+        {/* Overlay */}
+        {sidebarOpen && (
+          <div 
+            className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+            onClick={() => setSidebarOpen(false)}
+          />
+        )}
+        {/* Hamburger button */}
+        <button
+          onClick={() => setSidebarOpen(true)}
+          className="fixed top-4 left-4 z-30 p-2 bg-white rounded-lg shadow-lg hover:shadow-xl transition-all"
+        >
+          <svg className="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
+        <BrandVoiceUpload
+          onBack={handleBackFromBrandVoice}
+          onComplete={(examples, analysis) => {
+            setBrandVoiceExamples(examples);
+            setBrandVoice(analysis);
+            setStep("input");
+          }}
+          initialExamples={brandVoiceExamples}
+        />
+      </>
     );
   }
 
   if (step === "results") {
     return (
-      <ContentDashboard
-        topic={topic}
-        industry={industry}
-        contents={generatedContent}
-        brandVoice={brandVoice}
-        onRegenerate={handleGenerate}
-        onBackToInput={handleBackToInput}
-        onNewContent={handleNewContent}
-      />
+      <>
+        <Sidebar />
+        {/* Overlay */}
+        {sidebarOpen && (
+          <div 
+            className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+            onClick={() => setSidebarOpen(false)}
+          />
+        )}
+        {/* Hamburger button */}
+        <button
+          onClick={() => setSidebarOpen(true)}
+          className="fixed top-4 left-4 z-30 p-2 bg-white rounded-lg shadow-lg hover:shadow-xl transition-all"
+        >
+          <svg className="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
+        <ContentDashboard
+          topic={topic}
+          industry={industry}
+          contents={generatedContent}
+          brandVoice={brandVoice}
+          onRegenerate={handleGenerate}
+          onBackToInput={handleBackToInput}
+          onNewContent={handleNewContent}
+        />
+      </>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-amber-100 py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+    <>
+      <Sidebar />
+      {/* Overlay */}
+      {sidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+      {/* Hamburger button */}
+      <button
+        onClick={() => setSidebarOpen(true)}
+        className="fixed top-4 left-4 z-30 p-2 bg-white rounded-lg shadow-lg hover:shadow-xl transition-all"
+      >
+        <svg className="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
+      <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-amber-100 py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
       {/* Floating Claude Logo Background */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-5">
         {[...Array(12)].map((_, i) => (
@@ -211,7 +376,7 @@ export default function ContentStudio() {
               value={topic}
               onChange={(e) => setTopic(e.target.value)}
               placeholder="e.g., How AI is transforming fraud detection in banking"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-600 focus:border-transparent text-lg transition-all"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-600 focus:border-transparent text-lg transition-all text-black"
             />
           </div>
 
@@ -232,20 +397,29 @@ export default function ContentStudio() {
                 }}
                 onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
                 placeholder="Enter any industry (e.g., FinTech, Software Engineering, Healthcare)"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-600 focus:border-transparent text-lg transition-all"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-600 focus:border-transparent text-lg transition-all text-black bg-white placeholder:text-gray-400"
                 list="industry-suggestions"
               />
               {showSuggestions && industrySuggestions.length > 0 && (
-                <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-auto">
+                <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-auto text-black">
                   {industrySuggestions.map((suggestion, idx) => (
-                    <button
+                    <div
                       key={idx}
-                      type="button"
-                      onClick={() => selectIndustry(suggestion)}
-                      className="w-full text-left px-4 py-2 hover:bg-amber-50 transition-colors"
+                      role="option"
+                      tabIndex={0}
+                      onMouseDown={e => {
+                        e.preventDefault();
+                        selectIndustry(suggestion);
+                      }}
+                      onKeyDown={e => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          selectIndustry(suggestion);
+                        }
+                      }}
+                      className="w-full text-left px-4 py-2 hover:bg-amber-50 transition-colors cursor-pointer"
                     >
                       {suggestion}
-                    </button>
+                    </div>
                   ))}
                 </div>
               )}
@@ -393,23 +567,26 @@ export default function ContentStudio() {
         </div>
       </div>
 
-      <style jsx>{`
-        @keyframes float {
-          0%, 100% { transform: translateY(0px) rotate(0deg); }
-          50% { transform: translateY(-30px) rotate(180deg); }
-        }
-        .animate-float {
-          animation: float 20s ease-in-out infinite;
-        }
-        @keyframes gradient {
-          0%, 100% { background-position: 0% 50%; }
-          50% { background-position: 100% 50%; }
-        }
-        .animate-gradient {
-          background-size: 200% auto;
-          animation: gradient 3s ease infinite;
-        }
-      `}</style>
-    </div>
+      <style dangerouslySetInnerHTML={{
+        __html: `
+          @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-30px) rotate(180deg); }
+          }
+          .animate-float {
+            animation: float 20s ease-in-out infinite;
+          }
+          @keyframes gradient {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+          }
+          .animate-gradient {
+            background-size: 200% auto;
+            animation: gradient 3s ease infinite;
+          }
+        `
+      }} />
+      </div>
+    </>
   );
 }
