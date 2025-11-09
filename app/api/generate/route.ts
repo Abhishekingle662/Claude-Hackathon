@@ -2,6 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import type { ContentGenerationRequest, BrandVoiceAnalysis, GeneratedContent, Industry } from "@/app/types";
 
+// Validate API key format
+function validateApiKey(apiKey: string): boolean {
+  // Anthropic API keys start with 'sk-ant-' and are base64-like strings
+  return apiKey.startsWith('sk-ant-') && apiKey.length > 20;
+}
+
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY || "",
 });
@@ -119,7 +125,7 @@ Examples:`;
 
   try {
     // Use the latest available Claude model (must support vision for images)
-    const model = process.env.CLAUDE_MODEL || "claude-sonnet-4-20250514";
+    const model = process.env.CLAUDE_MODEL || "claude-3-7-sonnet-20250219";
     const message = await anthropic.messages.create({
       model: model,
       max_tokens: 1000,
@@ -322,7 +328,7 @@ Remember:
 
 Generate ONLY the SVG code, no explanations or markdown. Start directly with <svg.`;
 
-    const model = process.env.CLAUDE_MODEL || "claude-sonnet-4-20250514";
+    const model = process.env.CLAUDE_MODEL || "claude-3-7-sonnet-20250219";
     const message = await anthropic.messages.create({
       model: model,
       max_tokens: 4000, // Increased for more detailed SVGs
@@ -422,7 +428,7 @@ Generate the content now:`;
 
   try {
     // Use the latest available Claude model
-    const model = process.env.CLAUDE_MODEL || "claude-sonnet-4-20250514";
+    const model = process.env.CLAUDE_MODEL || "claude-3-7-sonnet-20250219";
     const message = await anthropic.messages.create({
       model: model,
       max_tokens: 4000,
@@ -456,6 +462,31 @@ Generate the content now:`;
     }
   } catch (error) {
     console.error(`Error generating ${format} content:`, error);
+    
+    // Handle specific Anthropic API errors
+    if (error && typeof error === 'object' && 'status' in error) {
+      const apiError = error as any;
+      console.error(`Anthropic API Error for ${format}:`, {
+        status: apiError.status,
+        message: apiError.message,
+        type: apiError.error?.type,
+        details: apiError.error
+      });
+      
+      // Return specific error messages for different error types
+      if (apiError.status === 401 || (apiError.error && apiError.error.type === 'authentication_error')) {
+        return {
+          format: format as any,
+          content: `❌ Authentication Error: ${apiError.error?.message || 'Invalid API key'}. Please check your ANTHROPIC_API_KEY in Vercel environment variables.`
+        };
+      } else if (apiError.status === 400 || (apiError.error && apiError.error.type === 'invalid_request_error')) {
+        return {
+          format: format as any,
+          content: `❌ Request Error: ${apiError.error?.message || 'Invalid request'}. Please try again with different parameters.`
+        };
+      }
+    }
+    
     const errorMessage = error instanceof Error ? error.message : String(error);
     console.error(`Full error for ${format}:`, {
       message: errorMessage,
@@ -464,7 +495,7 @@ Generate the content now:`;
     // Return a more helpful error message
     return {
       format: format as any,
-      content: `Error generating ${format} content: ${errorMessage}. Please check your API key and try again.`
+      content: `❌ Error generating ${format} content: ${errorMessage}. Please check your API key and try again.`
     };
   }
   
@@ -477,9 +508,20 @@ Generate the content now:`;
 
 export async function POST(request: NextRequest) {
   try {
-    if (!process.env.ANTHROPIC_API_KEY) {
+    const apiKey = process.env.ANTHROPIC_API_KEY;
+    
+    if (!apiKey) {
+      console.error("ANTHROPIC_API_KEY is not configured");
       return NextResponse.json(
         { error: "ANTHROPIC_API_KEY is not configured. Please set it in your .env.local file." },
+        { status: 500 }
+      );
+    }
+
+    if (!validateApiKey(apiKey)) {
+      console.error("Invalid ANTHROPIC_API_KEY format:", apiKey.substring(0, 10) + "...");
+      return NextResponse.json(
+        { error: "Invalid ANTHROPIC_API_KEY format. Please check your API key." },
         { status: 500 }
       );
     }
@@ -590,6 +632,22 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error("Error in generate route:", error);
+    
+    // Handle specific error types
+    if (error && typeof error === 'object' && 'status' in error) {
+      const apiError = error as any;
+      
+      if (apiError.status === 401) {
+        return NextResponse.json(
+          { 
+            error: `Authentication failed: ${apiError.error?.message || 'Invalid API key'}. Please verify your ANTHROPIC_API_KEY in Vercel environment variables.`,
+            details: "Make sure your API key starts with 'sk-ant-' and has the correct format."
+          },
+          { status: 401 }
+        );
+      }
+    }
+    
     const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
     console.error("Full error details:", {
       message: errorMessage,
